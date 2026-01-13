@@ -1,58 +1,85 @@
 @import "tailwindcss";
 
 :root {
-  --background: #fdfdfc;
+  --background: #f8fafc;
+  /* Slate 50 */
   --foreground: #0f172a;
-  --accent: #4f46e5;
+  /* Slate 900 */
+  --accent: #2563eb;
+  /* Blue 600 */
+  --card-bg: #ffffff;
+  --border-color: #e2e8f0;
+  /* Slate 200 */
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
   font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
 }
 
 @layer base {
   * {
-    border-color: rgba(15, 23, 42, 0.05);
+    border-color: var(--border-color);
   }
 }
 
+/* DNCL Syntax Highlighting for Editor (Light) */
 .dncl-keyword {
-  color: #4f46e5;
-  font-weight: 800;
+  color: #2563eb;
+  font-weight: 700;
 }
 
 .dncl-string {
-  color: #059669;
+  color: #16a34a;
 }
 
 .dncl-number {
-  color: #db2777;
+  color: #d33582;
 }
 
 .dncl-comment {
-  color: #94a3b8;
+  color: #64748b;
   font-style: italic;
 }
 
 .glass-panel {
-  background: white;
-  border: 1px solid rgba(15, 23, 42, 0.05);
-  box-shadow: 0 4px 20px -5px rgba(15, 23, 42, 0.05);
+  background: var(--card-bg);
+  border: 1px solid var(--border-color);
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.05), 0 1px 2px -1px rgba(0, 0, 0, 0.05);
+  border-radius: 1.5rem;
 }
 
 .paper-texture {
-  background-image: url("https://www.transparenttextures.com/patterns/natural-paper.png");
+  background-color: #f8fafc;
+  background-image: radial-gradient(#cbd5e1 0.5px, transparent 0.5px);
+  background-size: 20px 20px;
 }
 
-.step-indicator {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  font-size: 0.75rem;
-  font-weight: 900;
-  text-transform: uppercase;
-  color: #4f46e5;
-  letter-spacing: 0.1em;
+.step-badge {
+  @apply px-2 py-0.5 rounded-md text-[10px] font-black uppercase tracking-wider;
+}
+
+.step-card {
+  @apply bg-white border border-slate-200 rounded-2xl shadow-sm transition-all hover:shadow-md;
+}
+
+/* Custom Scrollbar for Light Theme */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
 }
