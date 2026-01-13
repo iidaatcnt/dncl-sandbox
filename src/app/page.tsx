@@ -3,111 +3,241 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
-  BookOpen,
   Play,
-  Pause,
   RotateCcw,
-  StepForward,
-  StepBack,
   Github,
   Terminal,
   Variable,
   Code2,
   Zap,
-  Lightbulb,
   GraduationCap,
-  History,
   Cpu,
-  BrainCircuit,
-  Settings2
+  Settings2,
+  Edit3,
+  CpuIcon,
+  Pause
 } from 'lucide-react';
 
-// --- Types ---
-interface State {
+// --- DNCL Interpreter Core ---
+interface VMState {
   line: number;
-  variables: Record<string, any>;
+  variables: Record<string, number>;
   output: string[];
   description: string;
 }
 
-// --- Sample Program (DNCL Specification) ---
-/*
-合計 = 0
-i を 1 から 5 まで 1 ずつ増やしながら繰り返す:
+const INITIAL_CODE = `合計 = 0
+n = 5
+i を 1 から n まで 1 ずつ増やしながら繰り返す:
     合計 = 合計 + i
-    「i は 」, i, 「 合計は 」, 合計 を表示する
-*/
-
-const SAMPLE_CODE = [
-  "合計 = 0",
-  "i を 1 から 5 まで 1 ずつ増やしながら繰り返す:",
-  "    合計 = 合計 + i",
-  "    「i = 」, i, 「 : 合計 = 」, 合計 を表示する",
-  "もし 合計 > 10 ならば:",
-  "    「10を超えました」を表示する",
-  "そうでなければ:",
-  "    「10以下です」を表示する"
-];
-
-const generateSteps = (): State[] => {
-  const steps: State[] = [];
-  let vars: Record<string, any> = { 合計: 0, i: 0 };
-  let logs: string[] = [];
-
-  // Step 0: Init
-  steps.push({ line: 0, variables: { ...vars }, output: [...logs], description: "変数を初期化します。" });
-
-  // Line 1: 合計 = 0
-  vars.合計 = 0;
-  steps.push({ line: 1, variables: { ...vars }, output: [...logs], description: "『合計』に0を代入します。" });
-
-  // Line 2: Loop Start
-  for (let val = 1; val <= 5; val++) {
-    vars.i = val;
-    steps.push({ line: 2, variables: { ...vars }, output: [...logs], description: `繰り返し: i = ${val} として開始します。` });
-
-    // Line 3: 合計 = 合計 + i
-    vars.合計 += vars.i;
-    steps.push({ line: 3, variables: { ...vars }, output: [...logs], description: `合計に i (${vars.i}) を足します。` });
-
-    // Line 4: 表示する
-    logs.push(`i = ${vars.i} : 合計 = ${vars.合計}`);
-    steps.push({ line: 4, variables: { ...vars }, output: [...logs], description: "計算結果を画面に表示します。" });
-  }
-
-  // Line 5: もし
-  steps.push({ line: 5, variables: { ...vars }, output: [...logs], description: "条件判定: 合計が10より大きいか調べます。" });
-  if (vars.合計 > 10) {
-    // Line 6
-    logs.push("10を超えました");
-    steps.push({ line: 6, variables: { ...vars }, output: [...logs], description: "条件成立: メッセージを表示します。" });
-  } else {
-    // Line 8
-    logs.push("10以下です");
-    steps.push({ line: 8, variables: { ...vars }, output: [...logs], description: "条件不成立: メッセージを表示します。" });
-  }
-
-  return steps;
-};
+    「i = 」, i, 「 : 合計 = 」, 合計 を表示する
+もし 合計 > 10 ならば:
+    「10を超えました」を表示する
+そうでなければ:
+    「10以下です」を表示する`;
 
 export default function DNCLStudio() {
-  const [steps, setSteps] = useState<State[]>([]);
+  const [code, setCode] = useState(INITIAL_CODE);
+  const [steps, setSteps] = useState<VMState[]>([]);
   const [currentIdx, setCurrentIdx] = useState(0);
   const [isPlaying, setIsPlaying] = useState(false);
   const [speed, setSpeed] = useState(800);
+  const [error, setError] = useState<string | null>(null);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
 
-  useEffect(() => {
-    setSteps(generateSteps());
+  // --- The Compiler/Interpreter Engine ---
+  const compileAndRun = useCallback((rawCode: string) => {
+    const lines = rawCode.split('\n').map(l => l.trimEnd()); // Keep leading spaces for block detection
+    const states: VMState[] = [];
+    let vars: Record<string, number> = {};
+    let logs: string[] = [];
+
+    const addState = (lineIdx: number, desc: string) => {
+      states.push({
+        line: lineIdx + 1,
+        variables: { ...vars },
+        output: [...logs],
+        description: desc
+      });
+    };
+
+    try {
+      setError(null);
+      let i = 0;
+      while (i < lines.length) {
+        const line = lines[i].trim();
+        if (!line || line.startsWith('//') || line.startsWith('#')) { i++; continue; }
+
+        // 1. Assignment: 合計 = 0
+        const assignMatch = line.match(/^([a-zA-Zあ-んア-ン一-龠]+)\s*=\s*(.+)$/);
+        if (assignMatch && !line.includes('繰り返す') && !line.includes('ならば') && !line.includes('そうでなければ')) {
+          const varName = assignMatch[1];
+          let expr = assignMatch[2];
+
+          // Simple expression evaluator
+          const evalValue = (e: string) => {
+            let processed = e;
+            // Sort variable names by length descending to avoid partial matches (e.g., 'i' matching in 'i_val')
+            const varNames = Object.keys(vars).sort((a, b) => b.length - a.length);
+            varNames.forEach(v => {
+              processed = processed.replace(new RegExp(`\\b${v}\\b`, 'g'), vars[v].toString());
+            });
+            try {
+              // Basic math evaluation safely
+              return Function(`"use strict"; return (${processed})`)();
+            } catch { return 0; }
+          };
+          vars[varName] = evalValue(expr);
+          addState(i, `変数 ${varName} に ${vars[varName]} を代入しました。`);
+        }
+
+        // 2. Loop: i を 1 から n まで 1 ずつ増やしながら繰り返す:
+        const loopMatch = line.match(/^([a-zA-Zあ-んア-ン一-龠]+)\s*を\s*(.+)\s*から\s*(.+)\s*まで\s*(.+)\s*ずつ増やしながら繰り返す:$/);
+        if (loopMatch) {
+          const counter = loopMatch[1];
+          const startExpr = loopMatch[2];
+          const endExpr = loopMatch[3];
+          const stepExpr = loopMatch[4];
+
+          const evalExpr = (e: string) => {
+            let p = e.trim();
+            const varNames = Object.keys(vars).sort((a, b) => b.length - a.length);
+            varNames.forEach(v => p = p.replace(new RegExp(`\\b${v}\\b`, 'g'), vars[v].toString()));
+            try { return Function(`"use strict"; return (${p})`)(); } catch { return 0; }
+          };
+
+          const start = evalExpr(startExpr);
+          const end = evalExpr(endExpr);
+          const stepSize = evalExpr(stepExpr);
+
+          const loopStartLine = i;
+
+          // Identify block
+          const blockLines: { idx: number, content: string }[] = [];
+          let bodyIdx = i + 1;
+          while (bodyIdx < lines.length && (lines[bodyIdx].startsWith('    ') || lines[bodyIdx].startsWith('\t') || lines[bodyIdx].trim() === '')) {
+            if (lines[bodyIdx].trim() !== '') {
+              blockLines.push({ idx: bodyIdx, content: lines[bodyIdx].trim() });
+            }
+            bodyIdx++;
+          }
+
+          for (let val = start; val <= end; val += stepSize) {
+            vars[counter] = val;
+            addState(loopStartLine, `繰り返し開始: ${counter} = ${val}`);
+
+            for (const bl of blockLines) {
+              const bLine = bl.content;
+              if (bLine.includes('を表示する')) {
+                const content = bLine.replace('を表示する', '').split(',').map(part => {
+                  const p = part.trim();
+                  if (p.startsWith('「') && p.endsWith('」')) return p.slice(1, -1);
+                  const varNames = Object.keys(vars).sort((a, b) => b.length - a.length);
+                  let processed = p;
+                  varNames.forEach(v => processed = processed.replace(new RegExp(`\\b${v}\\b`, 'g'), vars[v].toString()));
+                  try { return Function(`"use strict"; return (${processed})`)(); } catch { return p; }
+                }).join('');
+                logs.push(content);
+                addState(bl.idx, "計算結果を出力しました。");
+              } else if (bLine.match(/^([a-zA-Zあ-んア-ン一-龠]+)\s*=\s*(.+)$/)) {
+                const bAssign = bLine.match(/^([a-zA-Zあ-んア-ン一-龠]+)\s*=\s*(.+)$/);
+                if (bAssign) {
+                  let proc = bAssign[2];
+                  const varNames = Object.keys(vars).sort((a, b) => b.length - a.length);
+                  varNames.forEach(v => proc = proc.replace(new RegExp(`\\b${v}\\b`, 'g'), vars[v].toString()));
+                  vars[bAssign[1]] = Function(`"use strict"; return (${proc})`)();
+                  addState(bl.idx, `${bAssign[1]} を更新しました。`);
+                }
+              }
+            }
+          }
+          i = bodyIdx - 1; // Move pointer to end of block
+        }
+
+        // 3. Condition: もし 合計 > 10 ならば:
+        const ifMatch = line.match(/^もし\s*(.+)\s*ならば:$/);
+        if (ifMatch) {
+          let cond = ifMatch[1];
+          const varNames = Object.keys(vars).sort((a, b) => b.length - a.length);
+          varNames.forEach(v => cond = cond.replace(new RegExp(`\\b${v}\\b`, 'g'), vars[v].toString()));
+          const result = Function(`"use strict"; return (${cond})`)();
+          addState(i, `条件判定: ${ifMatch[1]} は ${result ? '成立' : '不成立'} です。`);
+
+          // Identify blocks
+          let thenBlock: number[] = [];
+          let elseBlock: number[] = [];
+          let currIdx = i + 1;
+          while (currIdx < lines.length && (lines[currIdx].startsWith('    ') || lines[currIdx].trim() === '')) {
+            if (lines[currIdx].trim()) thenBlock.push(currIdx);
+            currIdx++;
+          }
+
+          let hasElse = false;
+          if (currIdx < lines.length && lines[currIdx].trim() === 'そうでなければ:') {
+            hasElse = true;
+            const elseHeaderIdx = currIdx;
+            currIdx++;
+            while (currIdx < lines.length && (lines[currIdx].startsWith('    ') || lines[currIdx].trim() === '')) {
+              if (lines[currIdx].trim()) elseBlock.push(currIdx);
+              currIdx++;
+            }
+          }
+
+          const targetLines = result ? thenBlock : elseBlock;
+          for (const tIdx of targetLines) {
+            const tLine = lines[tIdx].trim();
+            if (tLine.includes('を表示する')) {
+              const content = tLine.replace('を表示する', '').split(',').map(part => {
+                const p = part.trim();
+                if (p.startsWith('「') && p.endsWith('」')) return p.slice(1, -1);
+                const vn = Object.keys(vars).sort((a, b) => b.length - a.length);
+                let processed = p;
+                vn.forEach(v => processed = processed.replace(new RegExp(`\\b${v}\\b`, 'g'), vars[v].toString()));
+                try { return Function(`"use strict"; return (${processed})`)(); } catch { return p; }
+              }).join('');
+              logs.push(content);
+              addState(tIdx, "メッセージを出力しました。");
+            }
+          }
+          i = currIdx - 1;
+        }
+
+        // 4. Print: 「...」 を表示する
+        if (line.includes('を表示する') && !line.startsWith('    ')) {
+          const content = line.replace('を表示する', '').split(',').map(part => {
+            const p = part.trim();
+            if (p.startsWith('「') && p.endsWith('」')) return p.slice(1, -1);
+            const varNames = Object.keys(vars).sort((a, b) => b.length - a.length);
+            let processed = p;
+            varNames.forEach(v => processed = processed.replace(new RegExp(`\\b${v}\\b`, 'g'), vars[v].toString()));
+            try { return Function(`"use strict"; return (${processed})`)(); } catch { return p; }
+          }).join('');
+          logs.push(content);
+          addState(i, "メッセージを出力しました。");
+        }
+
+        i++;
+      }
+
+      addState(lines.length - 1, "実行が終了しました。");
+      setSteps(states);
+      setCurrentIdx(0);
+    } catch (e) {
+      console.error(e);
+      setError("構文解析エラー: DNCLの記述、特に行頭のスペース（インデント）を確認してください。");
+      setSteps([]);
+    }
   }, []);
+
+  const runCode = () => {
+    compileAndRun(code);
+    setIsPlaying(true);
+  };
 
   const reset = useCallback(() => {
     setCurrentIdx(0);
     setIsPlaying(false);
   }, []);
-
-  const stepForward = useCallback(() => setCurrentIdx(prev => Math.min(prev + 1, steps.length - 1)), [steps.length]);
-  const stepBackward = useCallback(() => setCurrentIdx(prev => Math.max(prev - 1, 0)), []);
 
   useEffect(() => {
     if (isPlaying && currentIdx < steps.length - 1) {
@@ -130,7 +260,6 @@ export default function DNCLStudio() {
 
   return (
     <div className="min-h-screen bg-[#020617] text-slate-100 font-sans selection:bg-indigo-500/30">
-      {/* Header */}
       <header className="border-b border-white/5 bg-slate-950/50 backdrop-blur-md sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
           <div className="flex items-center gap-3">
@@ -140,12 +269,9 @@ export default function DNCLStudio() {
             <h1 className="font-black italic tracking-tighter text-xl uppercase tracking-widest text-indigo-400">DNCL_Studio</h1>
           </div>
           <div className="flex items-center gap-6">
-            <div className="hidden md:flex items-center gap-4 text-[10px] mono uppercase text-slate-500 font-black tracking-widest">
-              <div className="flex items-center gap-2">
-                <div className={`w-1.5 h-1.5 rounded-full ${isPlaying ? 'bg-indigo-400 animate-pulse' : 'bg-slate-800'}`} />
-                {isPlaying ? 'Executing' : 'Standby'}
-              </div>
-            </div>
+            <button onClick={runCode} className="px-6 py-2 bg-indigo-500 hover:bg-indigo-400 text-slate-950 rounded-xl font-black text-[10px] uppercase tracking-widest transition-all flex items-center gap-2 shadow-lg shadow-indigo-500/20">
+              <Zap size={14} className="fill-current" /> Run Logic
+            </button>
             <a href="https://github.com/iidaatcnt/dncl-studio" target="_blank" rel="noreferrer" className="text-slate-600 hover:text-white transition-colors">
               <Github size={20} />
             </a>
@@ -154,178 +280,135 @@ export default function DNCLStudio() {
       </header>
 
       <main className="max-w-7xl mx-auto px-6 py-12 grid grid-cols-1 lg:grid-cols-12 gap-12">
-        {/* Left: Code & Console */}
+        {/* Left: Input Editor */}
         <div className="lg:col-span-7 flex flex-col gap-8">
-
-          <div className="glass-panel rounded-[2.5rem] p-10 flex flex-col gap-8">
+          <div className="bg-slate-900/40 backdrop-blur-xl border border-white/5 rounded-[2.5rem] p-10 flex flex-col gap-8 shadow-2xl">
             <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <Code2 className="text-indigo-400 w-5 h-5" />
-                <h2 className="font-black text-[10px] uppercase tracking-widest text-slate-400">Source_Program // DNCL</h2>
+              <div className="flex items-center gap-3 text-slate-400">
+                <Edit3 size={18} />
+                <h2 className="font-black text-[10px] uppercase tracking-[0.2em]">Academic_Editor_Core</h2>
               </div>
-              <div className="px-3 py-1 rounded-full bg-indigo-500/10 border border-indigo-500/20 text-[9px] font-black text-indigo-400 uppercase tracking-widest">
-                共通テスト：情報I 仕様
-              </div>
+              {error && <span className="text-rose-400 text-[10px] font-black animate-pulse">!! {error}</span>}
             </div>
 
-            <div className="relative bg-black/40 rounded-3xl border border-white/5 p-8 font-mono text-[13px] leading-relaxed overflow-hidden">
-              {SAMPLE_CODE.map((text, i) => {
-                const lineNum = i + 1;
-                const isActive = step.line === lineNum;
-                return (
-                  <div key={i} className={`flex gap-6 transition-all duration-300 ${isActive ? 'bg-indigo-500/10 -mx-8 px-8 border-l-4 border-indigo-500 text-indigo-100 font-bold' : 'text-slate-500'}`}>
-                    <span className="w-6 text-right opacity-30 select-none">{lineNum}</span>
-                    <pre className="whitespace-pre-wrap">{text}</pre>
-                  </div>
-                );
-              })}
-              {/* Highlight Pulse */}
-              <div className="absolute inset-0 pointer-events-none bg-gradient-to-b from-transparent via-indigo-500/5 to-transparent h-20 blur-xl opacity-20" />
+            <div className="relative group">
+              <textarea
+                value={code}
+                onChange={(e) => setCode(e.target.value)}
+                placeholder="DNCLプログラムを入力してください..."
+                className="w-full h-[400px] bg-black/60 rounded-3xl border border-white/10 p-10 font-mono text-[14px] leading-relaxed text-indigo-100 outline-none focus:border-indigo-500/30 transition-all resize-none shadow-inner scrollbar-hide"
+                spellCheck={false}
+              />
+              <div className="absolute top-4 right-6 opacity-20 text-[8px] mono font-black text-slate-500 uppercase tracking-widest">Compiler Input</div>
             </div>
 
             <div className="flex flex-col gap-4">
               <div className="flex items-center gap-3">
                 <Terminal className="text-emerald-400 w-4 h-4" />
-                <h3 className="text-[10px] font-black uppercase text-slate-500 tracking-widest">Execution_Result</h3>
+                <h3 className="text-[10px] font-black uppercase text-slate-500 tracking-widest">Memory_Bus_Output</h3>
               </div>
-              <div className="bg-slate-950/80 rounded-2xl border border-white/5 p-6 min-h-[120px] font-mono text-xs text-emerald-400/90 leading-loose flex flex-col-reverse justify-end overflow-auto h-40 scrollbar-hide">
+              <div className="bg-black/80 rounded-2xl border border-white/5 p-6 min-h-[140px] font-mono text-xs text-emerald-400/90 leading-loose flex flex-col-reverse justify-end overflow-auto h-48 scrollbar-hide shadow-inner">
                 {step.output.slice().reverse().map((line, i) => (
                   <div key={i} className="flex gap-4">
                     <span className="opacity-30">❯</span>
                     <span>{line}</span>
                   </div>
                 ))}
-                {step.output.length === 0 && <span className="opacity-20 italic">出力待ち...</span>}
+                {!isPlaying && step.output.length === 0 && <span className="opacity-20 italic">実行ボタンを押してください...</span>}
               </div>
             </div>
           </div>
 
-          <div className="glass-panel p-8 rounded-[2.5rem] flex flex-col gap-8">
-            <div className="flex flex-col md:flex-row items-center gap-8">
-              <div className="flex items-center gap-2">
-                <button onClick={stepBackward} className="p-4 bg-slate-800 rounded-2xl hover:bg-slate-700 transition-colors text-slate-400"><StepBack size={20} /></button>
-                <button
-                  onClick={() => setIsPlaying(!isPlaying)}
-                  className="w-20 h-20 bg-indigo-600 text-white rounded-[2rem] flex items-center justify-center hover:bg-indigo-400 transition-all active:scale-95 shadow-xl shadow-indigo-500/20"
-                >
-                  {isPlaying ? <Pause fill="currentColor" size={24} /> : <Play fill="currentColor" size={24} className="ml-1" />}
-                </button>
-                <button onClick={stepForward} className="p-4 bg-slate-800 rounded-2xl hover:bg-slate-700 transition-colors text-slate-400"><StepForward size={20} /></button>
-                <button onClick={reset} className="p-4 bg-slate-800 rounded-2xl hover:bg-slate-700 transition-colors text-slate-400 ml-4"><RotateCcw size={20} /></button>
-              </div>
-
-              <div className="flex-1 w-full">
-                <div className="flex items-center justify-between mono text-[10px] text-slate-500 uppercase font-black tracking-widest mb-3 px-1">
-                  <span>Execution Speed</span>
-                  <span className="text-indigo-400">{speed}ms</span>
-                </div>
-                <input type="range" min="100" max="980" value={speed} onChange={(e) => setSpeed(parseInt(e.target.value))} className="w-full appearance-none bg-slate-800 h-1.5 rounded-full accent-indigo-500 cursor-pointer" />
-              </div>
+          <div className="bg-slate-900/40 border border-white/5 p-8 rounded-[3rem] flex items-center gap-10 shadow-xl">
+            <div className="flex items-center gap-2">
+              <button onClick={() => setIsPlaying(!isPlaying)} className={`w-16 h-16 rounded-2xl flex items-center justify-center transition-all ${isPlaying ? 'bg-amber-500 text-slate-950' : 'bg-indigo-600 text-white shadow-lg shadow-indigo-500/20 active:scale-95'}`}>
+                {isPlaying ? <Pause size={24} /> : <Play size={24} className="ml-1" />}
+              </button>
+              <button onClick={reset} className="p-4 bg-slate-800 rounded-xl text-slate-400 hover:text-white transition-colors"><RotateCcw size={20} /></button>
             </div>
-
-            <div className="p-6 bg-indigo-500/5 rounded-2xl border border-indigo-500/10 flex gap-4">
-              <div className="mt-1 p-2 bg-indigo-500/10 rounded-xl shrink-0">
-                <Zap size={16} className="text-indigo-400" />
+            <div className="flex-1">
+              <div className="flex justify-between text-[9px] mono text-slate-500 mb-2 uppercase font-black tracking-widest">
+                <span>CPU Frequency</span>
+                <span className="text-indigo-400">x{(speed / 100).toFixed(1)}</span>
               </div>
-              <p className="text-sm text-slate-400 leading-relaxed font-medium italic">
-                {step.description || "実行を開始すると、アルゴリズムの挙動がここに詳しく表示されます。"}
-              </p>
+              <input type="range" min="100" max="980" value={speed} onChange={(e) => setSpeed(parseInt(e.target.value))} className="w-full h-1.5 bg-slate-800 rounded-full appearance-none accent-indigo-500 cursor-pointer" />
             </div>
           </div>
         </div>
 
-        {/* Right: Variable Map & Concepts */}
+        {/* Right: Runtime Visualizer */}
         <div className="lg:col-span-5 flex flex-col gap-8">
-
-          <div className="glass-panel p-10 rounded-[3rem] shadow-2xl overflow-hidden relative">
-            <div className="absolute top-0 right-0 p-8 opacity-10 pointer-events-none">
-              <Cpu size={120} className="text-indigo-500" />
-            </div>
-
+          <div className="bg-slate-900/60 backdrop-blur-2xl p-10 rounded-[3rem] border border-white/5 shadow-2xl relative overflow-hidden h-[fit-content]">
             <div className="flex items-center gap-3 mb-10">
-              <Variable className="text-indigo-400 w-5 h-5" />
-              <h2 className="font-black text-[10px] uppercase tracking-widest text-slate-400">Memory_Status</h2>
+              <CpuIcon className="text-indigo-400 w-5 h-5" />
+              <h2 className="font-black text-[10px] uppercase tracking-widest text-slate-400">Runtime_Variable_Stack</h2>
             </div>
 
-            <div className="flex flex-col gap-4">
-              {Object.entries(step.variables).map(([key, val]) => (
-                <motion.div
-                  key={key}
-                  layout
-                  className="flex items-center justify-between p-6 bg-white/5 border border-white/5 rounded-3xl"
-                >
-                  <div className="flex flex-col">
-                    <span className="text-[10px] mono text-slate-600 font-bold uppercase tracking-widest mb-1">{key}</span>
-                    <span className="text-[9px] text-indigo-400/50 font-black">INTEGER</span>
-                  </div>
-                  <AnimatePresence mode="wait">
-                    <motion.div
-                      key={val}
-                      initial={{ scale: 0.8, opacity: 0 }}
-                      animate={{ scale: 1, opacity: 1 }}
-                      className="text-2xl font-black text-white px-6 py-2 bg-indigo-500/10 rounded-2xl border border-indigo-500/20"
-                    >
-                      {val}
-                    </motion.div>
-                  </AnimatePresence>
-                </motion.div>
-              ))}
-            </div>
-
-            <div className="mt-12 p-8 bg-black/40 rounded-[2rem] border border-white/5">
-              <div className="flex items-center gap-2 mb-4">
-                <Settings2 size={16} className="text-slate-600" />
-                <span className="text-[9px] mono font-black text-slate-500 uppercase tracking-widest">Logic Insight</span>
-              </div>
-              <div className="flex gap-4">
-                <div className="flex-1 text-center p-4 bg-white/5 rounded-2xl border border-white/5">
-                  <div className="text-[10px] text-slate-600 mb-1">LOOP</div>
-                  <div className="text-xs font-black text-indigo-400">{step.variables.i} / 5</div>
-                </div>
-                <div className="flex-1 text-center p-4 bg-white/5 rounded-2xl border border-white/5">
-                  <div className="text-[10px] text-slate-600 mb-1">BRANCH</div>
-                  <div className="text-xs font-black text-emerald-400">{step.variables.合計 > 10 ? 'True' : 'False'}</div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div className="glass-panel p-10 rounded-[3rem] shadow-2xl">
-            <div className="flex items-center gap-3 mb-8">
-              <Lightbulb className="text-amber-400 w-5 h-5" />
-              <h2 className="font-black text-xs uppercase tracking-[0.2em] text-slate-400">Concept_Guide</h2>
-            </div>
-            <div className="p-6 bg-black/40 rounded-3xl border border-white/5 mb-8">
-              <h3 className="text-indigo-400 font-black mb-3 text-sm italic">DNCLとは？</h3>
-              <p className="text-[11px] text-slate-500 leading-relaxed font-medium">
-                「大学入学共通テスト手順記述標準言語」の略称。特定のプログラミング言語に依存せず、アルゴリズムの論理構成を学ぶために設計されました。
-                日本語に近い記述ながら、厳密な論理構造を持っています。
-              </p>
-            </div>
             <div className="space-y-4">
-              <div className="flex items-center gap-3 group">
-                <div className="w-8 h-8 rounded-xl bg-white/5 border border-white/5 flex items-center justify-center text-indigo-400 group-hover:bg-indigo-500 group-hover:text-white transition-all">
-                  <Zap size={14} />
-                </div>
-                <span className="text-[10px] mono font-black text-slate-500 uppercase tracking-widest">配列の処理をマスター</span>
-              </div>
-              <div className="flex items-center gap-3 group">
-                <div className="w-8 h-8 rounded-xl bg-white/5 border border-white/5 flex items-center justify-center text-emerald-400 group-hover:bg-emerald-500 group-hover:text-white transition-all">
-                  <Zap size={14} />
-                </div>
-                <span className="text-[10px] mono font-black text-slate-500 uppercase tracking-widest">関数の再帰をイメージ</span>
-              </div>
+              <AnimatePresence mode="popLayout">
+                {Object.entries(step.variables).map(([name, val]) => (
+                  <motion.div
+                    key={name}
+                    layout
+                    initial={{ opacity: 0, x: 20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    className="p-6 bg-white/5 rounded-3xl border border-white/5 flex items-center justify-between group hover:bg-white/10 transition-colors"
+                  >
+                    <div>
+                      <div className="text-[10px] mono text-slate-500 font-black uppercase mb-1 tracking-widest">{name}</div>
+                      <div className="text-[8px] text-indigo-400/50">INT64_STD_CORE</div>
+                    </div>
+                    <div className="text-2xl font-black text-white tabular-nums px-4 py-1 bg-indigo-500/10 rounded-xl border border-indigo-500/10">
+                      {val}
+                    </div>
+                  </motion.div>
+                ))}
+                {Object.keys(step.variables).length === 0 && (
+                  <div className="py-12 text-center opacity-20 italic text-sm">変数未割り当て</div>
+                )}
+              </AnimatePresence>
             </div>
+
+            <div className="mt-12 p-8 bg-indigo-500/5 border border-indigo-500/10 rounded-[2rem] min-h-[140px] flex flex-col gap-4">
+              <div className="flex items-center gap-2">
+                <Settings2 size={16} className="text-indigo-400" />
+                <span className="text-[10px] font-black uppercase tracking-widest text-slate-500">Execution_Context</span>
+              </div>
+              <p className="text-xs text-slate-400 leading-relaxed italic font-medium">
+                {step.description || "シミュレーション待機中..."}
+              </p>
+              {step.line > 0 && (
+                <div className="pt-4 mt-2 border-t border-white/5 flex items-center justify-between">
+                  <span className="text-[10px] mono text-slate-600 font-black">PC (Program Counter)</span>
+                  <span className="text-indigo-400 font-black mono text-xs">LINE_{step.line}</span>
+                </div>
+              )}
+            </div>
+
+            {isPlaying && (
+              <div className="absolute top-0 right-0 p-10 opacity-10 pointer-events-none">
+                <Cpu size={120} className="text-indigo-500 animate-[spin_12s_linear_infinite]" />
+              </div>
+            )}
           </div>
 
+          <div className="bg-indigo-500/10 border border-indigo-500/20 p-8 rounded-[2.5rem]">
+            <div className="flex items-center gap-3 mb-6">
+              <Zap className="text-amber-400 w-5 h-5 fill-current" />
+              <h2 className="font-black text-[10px] uppercase tracking-widest text-indigo-300">Quick_Guide</h2>
+            </div>
+            <p className="text-[11px] text-slate-400 leading-relaxed font-bold">
+              DNCLは共通テストのための「標準的な記法」です。
+              <br />・代入は「=`」
+              <br />・繰り返しは「`を...から...まで...増やしながら繰り返す:」
+              <br />・ブロック内のインデント（行頭のスペース）を忘れずに！
+            </p>
+          </div>
         </div>
       </main>
 
-      <footer className="mt-20 border-t border-white/5 py-20 bg-slate-950/50">
-        <div className="max-w-7xl mx-auto flex flex-col items-center gap-6">
-          <BrainCircuit className="text-slate-800 w-12 h-12" />
-          <p className="text-[8px] mono text-slate-700 uppercase tracking-[0.8em]">DNCL_Studio // Future_Education_Lab</p>
-        </div>
+      <footer className="mt-20 border-t border-white/5 py-12 text-center opacity-20">
+        <p className="text-[8px] mono uppercase tracking-[1em]">dncl_studio // future_informatics_I_v2</p>
       </footer>
     </div>
   );
