@@ -1,0 +1,43 @@
+@import "tailwindcss";
+
+:root {
+  --background: #020617;
+  --foreground: #f8fafc;
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-sans);
+}
+
+@layer base {
+  * {
+    border-color: rgba(255, 255, 255, 0.05);
+  }
+}
+
+.dncl-keyword {
+  color: #818cf8;
+  font-weight: 800;
+}
+
+.dncl-string {
+  color: #34d399;
+}
+
+.dncl-number {
+  color: #f472b6;
+}
+
+.dncl-comment {
+  color: #64748b;
+  font-style: italic;
+}
+
+.glass-panel {
+  background: rgba(15, 23, 42, 0.6);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+}
