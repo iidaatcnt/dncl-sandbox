@@ -1,8 +1,9 @@
 @import "tailwindcss";
 
 :root {
-  --background: #020617;
-  --foreground: #f8fafc;
+  --background: #fdfdfc;
+  --foreground: #0f172a;
+  --accent: #4f46e5;
 }
 
 body {
@@ -13,31 +14,45 @@ body {
 
 @layer base {
   * {
-    border-color: rgba(255, 255, 255, 0.05);
+    border-color: rgba(15, 23, 42, 0.05);
   }
 }
 
 .dncl-keyword {
-  color: #818cf8;
+  color: #4f46e5;
   font-weight: 800;
 }
 
 .dncl-string {
-  color: #34d399;
+  color: #059669;
 }
 
 .dncl-number {
-  color: #f472b6;
+  color: #db2777;
 }
 
 .dncl-comment {
-  color: #64748b;
+  color: #94a3b8;
   font-style: italic;
 }
 
 .glass-panel {
-  background: rgba(15, 23, 42, 0.6);
-  backdrop-filter: blur(12px);
-  border: 1px solid rgba(255, 255, 255, 0.05);
-  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+  background: white;
+  border: 1px solid rgba(15, 23, 42, 0.05);
+  box-shadow: 0 4px 20px -5px rgba(15, 23, 42, 0.05);
+}
+
+.paper-texture {
+  background-image: url("https://www.transparenttextures.com/patterns/natural-paper.png");
+}
+
+.step-indicator {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.75rem;
+  font-weight: 900;
+  text-transform: uppercase;
+  color: #4f46e5;
+  letter-spacing: 0.1em;
 }
