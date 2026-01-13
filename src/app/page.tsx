@@ -405,7 +405,7 @@ export default function DNCLSandbox() {
                 <input type="range" min="100" max="980" value={speed} onChange={(e) => setSpeed(parseInt(e.target.value))} className="w-full h-1 bg-slate-100 rounded-full appearance-none accent-blue-600 cursor-pointer" />
               </div>
             </div>
-            section>
+          </section>
         </div>
 
         {/* Right Side: Memory Map */}
