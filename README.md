@@ -1,36 +1,80 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# 🧪 DNCL Sandbox Studio
 
-## Getting Started
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Next.js](https://img.shields.io/badge/Next.js-15-black)](https://nextjs.org/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5-blue)](https://www.typescriptlang.org/)
 
-First, run the development server:
+**DNCL Sandbox Studio** は、日本の「大学入学共通テスト」における「情報I」で採用されている手順記述標準言語 **DNCL** を、ブラウザ上で直感的に学習・実験できるプロフェッショナルなサンドボックス環境です。
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+[English Description follows Japanese]
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+---
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## 🚀 特徴 (Features)
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+1. **リアルタイム・インタプリタ**:
+   書いたコードをその場で解析し実行。ステップ実行や変数の変化を追跡できます。
+2. **メモリ・ビジュアライザー**:
+   DNCLの核となる「配列」の概念を視覚化。メモリアドレスの中身が書き換わる様子をリアルタイムにカード形式で表示します。
+3. **プリセット・ライブラリ**:
+   「最大値探索」「バブルソート」「合計計算」など、頻出のアルゴリズムを1クリックで呼び出し可能。
+4. **モダンなUI/UX**:
+   深みのあるインディゴを基調としたダークモード。プロフェッショナルな開発環境のような体験を提供します。
+5. **永続化**:
+   ブラウザのローカルストレージにより、書いたコードは自動的に保存されます。
 
-## Learn More
+---
 
-To learn more about Next.js, take a look at the following resources:
+## 🌏 What is DNCL?
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+**DNCL** (Daigaku Nyūgaku Kyōtsū Test Procedure Description Language) is a high-level pseudocode standard specifically designed for the Japanese University Entrance Common Test in "Informatics I". 
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+While it's primarily used in Japan, it provides an excellent entry point for understanding logic, sequences, and data structures. This sandbox brings that academic standard into a modern, interactive development environment.
 
-## Deploy on Vercel
+### Why this sandbox?
+- **For Students**: No setup required. Just code and see the logic move.
+- **For Teachers**: Easily demonstrate complex algorithms like sorting and searching.
+- **For Geeks**: Explore the unique logic of Japanese educational computer science.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+---
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## 🛠 テクノロジースタック (Tech Stack)
+
+- **Frontend**: Next.js (App Router), React 19
+- **Logic**: Custom DNCL Interpreter Engine (Client-side)
+- **Styling**: Tailwind CSS
+- **Animation**: Framer Motion
+- **Icons**: Lucide React
+
+---
+
+## 🏃‍♂️ 始め方 (Getting Started)
+
+### Local Development
+
+1. クローンする:
+   ```bash
+   git clone https://github.com/iidaatcnt/dncl-sandbox.git
+   ```
+2. 依存関係をインストール:
+   ```bash
+   npm install
+   ```
+3. サーバー起動:
+   ```bash
+   npm run dev
+   ```
+
+### Deployment
+
+This project is optimized for **Vercel**. Simply connect your fork to Vercel and it will be live!
+
+---
+
+## 📄 License
+
+MIT License - feel free to use and contribute!
+
+---
+
+Developed by **Antigravity** for the Future Informatics Series.
