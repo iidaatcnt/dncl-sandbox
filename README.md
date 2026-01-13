@@ -25,6 +25,24 @@
 
 ---
 
+## 📖 操作方法 (How to Use)
+
+### 1. コードを書く / 読み込む
+- **エディタ**: 中央のエディタに直接 DNCL コードを入力します。
+- **プリセット**: 左側の `Presets_Library` から、定番のアルゴリズムを瞬時にロードできます。
+
+### 2. 実行する
+- **Initialize Sandbox**: 右上のボタン、または中央下の再生ボタンを押すと、コードの解析と実行が始まります。
+- **Speed調整**: 中央下のスライダーで、シミュレーションの速度（実行のウェイト時間）を自由に変更できます。
+- **リセット**: 回転矢印アイコンで、実行状態を初期化します。
+
+### 3. データを確認する
+- **Logic_Pipeline_Trace**: 現在実行中の命令と、その説明が表示されます。
+- **Virtual_Memory_Map**: 右側のパネルで、変数（Scalar）や配列（Array）の現在の値をリアルタイムに監視できます。
+- **I/O_Virtual_Stream**: コンソール出力の結果が表示されます。
+
+---
+
 ## 🌏 What is DNCL?
 
 **DNCL** (Daigaku Nyūgaku Kyōtsū Test Procedure Description Language) is a high-level pseudocode standard specifically designed for the Japanese University Entrance Common Test in "Informatics I". 
@@ -65,10 +83,6 @@ While it's primarily used in Japan, it provides an excellent entry point for und
    npm run dev
    ```
 
-### Deployment
-
-This project is optimized for **Vercel**. Simply connect your fork to Vercel and it will be live!
-
 ---
 
 ## 📄 License
@@ -77,4 +91,5 @@ MIT License - feel free to use and contribute!
 
 ---
 
-Developed by **Antigravity** for the Future Informatics Series.
+Developed by **Antigravity** for the **Shiroi Programming School**.
+See [SPWC.md](./SPWC.md) for developer information.
