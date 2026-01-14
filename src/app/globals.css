@@ -1,74 +1,107 @@
 @import "tailwindcss";
 
 :root {
-  --background: #f8fafc;
-  /* Slate 50 */
-  --foreground: #0f172a;
-  /* Slate 900 */
-  --accent: #2563eb;
-  /* Blue 600 */
-  --card-bg: #ffffff;
-  --border-color: #e2e8f0;
-  /* Slate 200 */
+  --background: #f4f7f8;
+  --foreground: #2b3a4a;
+  --accent: #20a0d0;
+  --editor-bg: #1e1e1e;
+  --progate-green: #00c2b0;
+  --progate-orange: #ff9d22;
+  --progate-text-muted: #8899a6;
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: var(--font-sans);
+  font-family: "Hiragino Kaku Gothic ProN", "Meiryo", sans-serif;
   -webkit-font-smoothing: antialiased;
 }
 
-@layer base {
-  * {
-    border-color: var(--border-color);
-  }
+/* Progate Style Cards */
+.task-card {
+  background: #ffffff;
+  border-radius: 4px;
+  border: 1px solid #e1e8ed;
+  padding: 20px;
+  margin-bottom: 20px;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
 }
 
-/* DNCL Syntax Highlighting for Editor (Light) */
-.dncl-keyword {
-  color: #2563eb;
+.task-card-header {
+  background: #ebf6f7;
+  color: #20a0d0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  font-size: 11px;
+  font-weight: 800;
+  margin: -20px -20px 16px -20px;
+  border-radius: 4px 4px 0 0;
+  border-bottom: 1px solid #e1e8ed;
+}
+
+/* Progress Bar */
+.progress-bar-container {
+  background: #e1e8ed;
+  height: 12px;
+  border-radius: 6px;
+  width: 200px;
+  overflow: hidden;
+}
+
+.progress-bar-fill {
+  background: #5ed291;
+  height: 100%;
+  transition: width 0.3s ease;
+}
+
+/* Editor UI */
+.editor-container {
+  background: #253341;
+  border-radius: 4px;
+  overflow: hidden;
+  display: flex;
+  flex-grow: 1;
+  flex-direction: column;
+}
+
+.editor-tabs {
+  background: #1b2937;
+  display: flex;
+  height: 36px;
+}
+
+.editor-tab {
+  padding: 0 16px;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  font-size: 11px;
   font-weight: 700;
+  color: #8899a6;
+  border-right: 1px solid #101921;
+  cursor: pointer;
 }
 
-.dncl-string {
-  color: #16a34a;
+.editor-tab.active {
+  background: #253341;
+  color: #ffffff;
 }
 
-.dncl-number {
-  color: #d33582;
+.editor-footer {
+  background: #1b2937;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  padding: 0 16px;
+  gap: 16px;
 }
 
-.dncl-comment {
-  color: #64748b;
-  font-style: italic;
-}
-
-.glass-panel {
-  background: var(--card-bg);
-  border: 1px solid var(--border-color);
-  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.05), 0 1px 2px -1px rgba(0, 0, 0, 0.05);
-  border-radius: 1.5rem;
-}
-
-.paper-texture {
-  background-color: #f8fafc;
-  background-image: radial-gradient(#cbd5e1 0.5px, transparent 0.5px);
-  background-size: 20px 20px;
-}
-
-.step-badge {
-  @apply px-2 py-0.5 rounded-md text-[10px] font-black uppercase tracking-wider;
-}
-
-.step-card {
-  @apply bg-white border border-slate-200 rounded-2xl shadow-sm transition-all hover:shadow-md;
-}
-
-/* Custom Scrollbar for Light Theme */
+/* Custom Scrollbar */
 ::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+  width: 8px;
+  height: 8px;
 }
 
 ::-webkit-scrollbar-track {
@@ -77,9 +110,13 @@ body {
 
 ::-webkit-scrollbar-thumb {
   background: #cbd5e1;
-  border-radius: 10px;
+  border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
   background: #94a3b8;
+}
+
+.paper-texture {
+  background-color: #f4f7f8;
 }
