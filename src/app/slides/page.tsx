@@ -21,7 +21,12 @@ const SLIDES = [
     {
         title: "共通テスト手順記述標準言語 (DNCL)",
         subtitle: "プログラミングの基礎と共通テスト対策",
-        content: "共通テストで採用されているDNCL（手順記述標準言語）の仕様を、公式ドキュメントに基づいて学習しましょう。",
+        content: "大学入試センターが公開する仕様に基づき、共通テストで採用されているDNCL（手順記述標準言語）の基本を学習しましょう。",
+        citation: {
+            title: "共通テスト手順記述標準言語 (DNCL) の説明",
+            author: "独立行政法人大学入試センター",
+            date: "2022 年 1 月"
+        },
         icon: <BookOpen className="w-12 h-12 text-[#20a0d0]" />,
         color: "from-[#20a0d0] to-[#00c2b0]"
     },
@@ -103,6 +108,12 @@ export default function SlidesPage() {
         }
     };
 
+    const goToSlide = (index: number) => {
+        if (index === currentSlide) return;
+        setDirection(index > currentSlide ? 1 : -1);
+        setCurrentSlide(index);
+    };
+
     useEffect(() => {
         const handleKeyDown = (e: KeyboardEvent) => {
             if (e.key === 'ArrowRight') nextSlide();
@@ -125,11 +136,13 @@ export default function SlidesPage() {
                     <span className="text-white/80 font-black text-xs uppercase tracking-widest">DNCL Learning Kit</span>
                 </div>
                 <div className="flex items-center gap-6">
-                    <div className="flex gap-1">
+                    <div className="flex gap-1.5 p-1 bg-white/5 rounded-full">
                         {SLIDES.map((_, i) => (
-                            <div
+                            <button
                                 key={i}
-                                className={`h-1 rounded-full transition-all duration-300 ${i === currentSlide ? 'w-8 bg-[#20a0d0]' : 'w-2 bg-white/20'}`}
+                                onClick={() => goToSlide(i)}
+                                className={`h-1.5 rounded-full transition-all duration-300 hover:bg-white/40 ${i === currentSlide ? 'w-10 bg-[#20a0d0]' : 'w-2 bg-white/20'}`}
+                                title={`Page ${i + 1}`}
                             />
                         ))}
                     </div>
@@ -192,6 +205,19 @@ export default function SlidesPage() {
                                         レッスン一覧に戻る <ArrowRight size={20} />
                                     </motion.button>
                                 </Link>
+                            )}
+
+                            {(slide as any).citation && (
+                                <div className="mt-auto pt-8 border-t border-slate-100 flex flex-col gap-1">
+                                    <div className="flex items-center gap-2 text-[10px] font-black text-[#20a0d0] uppercase tracking-wider">
+                                        <Info size={12} />
+                                        Source Reference
+                                    </div>
+                                    <div className="text-[11px] font-bold text-[#8899a6] leading-relaxed">
+                                        {(slide as any).citation.title}<br />
+                                        {(slide as any).citation.author}（{(slide as any).citation.date}）
+                                    </div>
+                                </div>
                             )}
                         </div>
 
