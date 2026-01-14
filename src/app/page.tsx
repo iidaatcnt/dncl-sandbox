@@ -534,9 +534,11 @@ function DNCLProgateStudio() {
 
       {/* Footer */}
       <footer className="h-12 bg-white border-t border-[#e1e8ed] flex items-center justify-between px-6 shrink-0 z-50">
-        <button className="bg-[#20a0d0] hover:bg-[#1c8cb8] text-white px-5 py-2 rounded font-black text-[10px] flex items-center gap-2 transition-all shadow-md active:scale-95">
-          <BookOpen size={14} /> スライドで学習する
-        </button>
+        <Link href="/slides">
+          <button className="bg-[#20a0d0] hover:bg-[#1c8cb8] text-white px-5 py-2 rounded font-black text-[10px] flex items-center gap-2 transition-all shadow-md active:scale-95">
+            <BookOpen size={14} /> スライドで学習する
+          </button>
+        </Link>
 
         <div className="flex items-center gap-8">
           <div className="flex items-center gap-4">
