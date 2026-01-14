@@ -1,95 +1,38 @@
-# 🧪 DNCL Sandbox Studio
+# DNCL Sandbox Studio
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Next.js](https://img.shields.io/badge/Next.js-15-black)](https://nextjs.org/)
-[![TypeScript](https://img.shields.io/badge/TypeScript-5-blue)](https://www.typescriptlang.org/)
+共通テスト「情報I」のプログラミング対策に特化した、インタラクティブな学習プラットフォームです。
+DNCL（手順記述標準言語）をブラウザ上で実際に動かしながら学ぶことができます。
 
-**DNCL Sandbox Studio** は、日本の「大学入学共通テスト」における「情報I」で採用されている手順記述標準言語 **DNCL** を、ブラウザ上で直感的に学習・実験できるプロフェッショナルなサンドボックス環境です。
+## 🚀 主な機能
 
-[English Description follows Japanese]
+- **DNCL インタプリタ**: ブラウザ上でDNCLコードを実行・シミュレート可能。
+- **ステップ実行シミュレーション**: 内部メモリの状態や変数の変化を行ごとに可視化。
+- **学習スライド**: 大学入試センターの公式仕様に基づいた基本文法の解説。
+- **レッスンマップ**: 基礎からアルゴリズム（ソートや探索）まで、段階的に学習できるロードマップ。
+- **リファレンス**: いつでも確認できる逆引き文法ガイド。
 
----
+## ⚠️ デモ版における制限事項
 
-## 🚀 特徴 (Features)
+本リポジトリは現在「デモ版（コンセプトモデル）」として公開されています。
+UI上の以下の項目はプロトタイプ表示であり、ロジックは実装されていません。
 
-1. **リアルタイム・インタプリタ**:
-   書いたコードをその場で解析し実行。ステップ実行や変数の変化を追跡できます。
-2. **メモリ・ビジュアライザー**:
-   DNCLの核となる「配列」の概念を視覚化。メモリアドレスの中身が書き換わる様子をリアルタイムにカード形式で表示します。
-3. **プリセット・ライブラリ**:
-   「最大値探索」「バブルソート」「合計計算」など、頻出のアルゴリズムを1クリックで呼び出し可能。
-4. **モダンなUI/UX**:
-   深みのあるインディゴを基調としたダークモード。プロフェッショナルな開発環境のような体験を提供します。
-5. **永続化**:
-   ブラウザのローカルストレージにより、書いたコードは自動的に保存されます。
+- **ログイン/ユーザー認証**: ログインしているように表示されますが、実際にアカウントを作成したりログインしたりする機能は未実装です。
+- **XP / レベル / ポイントシステム**: 学習の進捗に伴うXPの加算やレベルアップ、ポイント機能は将来的な実装予定（マイルストーン）としてUIのみ定義されています。
+- **学習進捗の永続化**: 各レッスンの完了ステータスなどはブラウザのローカルストレージを使用しており、サーバーサイドでの保存は行っていません。
 
----
+## 🛠 将来のアップデート予定
 
-## 📖 操作方法 (How to Use)
+- ユーザー認証およびクラウド保存機能の実装。
+- ポイント、バッジ、ランキングなどのゲーミフィケーション要素の追加。
+- 共通テスト過去問をベースにした実践的な問題セットの拡充。
+- AIによるコード診断・ヒント機能。
 
-### 1. コードを書く / 読み込む
-- **エディタ**: 中央のエディタに直接 DNCL コードを入力します。
-- **プリセット**: 左側の `Presets_Library` から、定番のアルゴリズムを瞬時にロードできます。
+## 📋 開発者向け情報
 
-### 2. 実行する
-- **Initialize Sandbox**: 右上のボタン、または中央下の再生ボタンを押すと、コードの解析と実行が始まります。
-- **Speed調整**: 中央下のスライダーで、シミュレーションの速度（実行のウェイト時間）を自由に変更できます。
-- **リセット**: 回転矢印アイコンで、実行状態を初期化します。
-
-### 3. データを確認する
-- **Logic_Pipeline_Trace**: 現在実行中の命令と、その説明が表示されます。
-- **Virtual_Memory_Map**: 右側のパネルで、変数（Scalar）や配列（Array）の現在の値をリアルタイムに監視できます。
-- **I/O_Virtual_Stream**: コンソール出力の結果が表示されます。
+詳細な技術スタックやディレクトリ構造、仕様については [spec.md](./spec.md) を参照してください。
 
 ---
 
-## 🌏 What is DNCL?
-
-**DNCL** (Daigaku Nyūgaku Kyōtsū Test Procedure Description Language) is a high-level pseudocode standard specifically designed for the Japanese University Entrance Common Test in "Informatics I". 
-
-While it's primarily used in Japan, it provides an excellent entry point for understanding logic, sequences, and data structures. This sandbox brings that academic standard into a modern, interactive development environment.
-
-### Why this sandbox?
-- **For Students**: No setup required. Just code and see the logic move.
-- **For Teachers**: Easily demonstrate complex algorithms like sorting and searching.
-- **For Geeks**: Explore the unique logic of Japanese educational computer science.
-
----
-
-## 🛠 テクノロジースタック (Tech Stack)
-
-- **Frontend**: Next.js (App Router), React 19
-- **Logic**: Custom DNCL Interpreter Engine (Client-side)
-- **Styling**: Tailwind CSS
-- **Animation**: Framer Motion
-- **Icons**: Lucide React
-
----
-
-## 🏃‍♂️ 始め方 (Getting Started)
-
-### Local Development
-
-1. クローンする:
-   ```bash
-   git clone https://github.com/iidaatcnt/dncl-sandbox.git
-   ```
-2. 依存関係をインストール:
-   ```bash
-   npm install
-   ```
-3. サーバー起動:
-   ```bash
-   npm run dev
-   ```
-
----
-
-## 📄 License
-
-MIT License - feel free to use and contribute!
-
----
-
-Developed by **Antigravity** for the **Shiroi Programming School**.
-See [SPWC.md](./SPWC.md) for developer information.
+### 出典
+本アプリの学習コンテンツは、以下の資料を参考に作成されています：
+- [共通テスト手順記述標準言語 (DNCL) の説明](https://www.dnc.ac.jp/albums/abm.php?d=666&f=abm00000819.pdf)（独立行政法人大学入試センター / 2022年1月）
